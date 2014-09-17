@@ -73,7 +73,7 @@ void Move_Final (edict_t *ent)
 	ent->think = Move_Done;
 	ent->nextthink = level.time + FRAMETIME;
 }
-
+//BO -- DROP THE TEMPORAL EFFECT IN HERE
 void Move_Begin (edict_t *ent)
 {
 	float	frames;

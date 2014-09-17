@@ -427,6 +427,16 @@ void T_Damage (edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 			VectorAdd (targ->velocity, kvel, targ->velocity);
 		}
 	}
+	// figure momentum add
+	if (dflags & DAMAGE_IMPLOSIVE != 0)
+	{
+		if ((knockback) && (targ->movetype != MOVETYPE_NONE) && (targ->movetype != MOVETYPE_BOUNCE) && (targ->movetype != MOVETYPE_PUSH) && (targ->movetype != MOVETYPE_STOP))
+		{
+			vec3_t	kvel;
+			VectorScale (dir, -100.0 * (float)knockback, kvel);
+			VectorAdd (targ->velocity, kvel, targ->velocity);
+		}
+	}
 
 	take = damage;
 	save = 0;
