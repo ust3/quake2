@@ -385,6 +385,7 @@ void G_InitEdict (edict_t *e)
 	e->classname = "noclass";
 	e->gravity = 1.0;
 	e->s.number = e - g_edicts;
+	e->g_timer = 0;
 }
 
 /*

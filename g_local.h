@@ -48,6 +48,7 @@
 #define	FL_TEAMSLAVE			0x00000400	// not the first on the team
 #define FL_NO_KNOCKBACK			0x00000800
 #define FL_POWER_ARMOR			0x00001000	// power armor (if any) is active
+#define FL_SLOWDOWN				0x00002000	// Used for temporal bomb slowdowns
 #define FL_RESPAWN				0x80000000	// used for item respawning
 
 
@@ -201,7 +202,7 @@ typedef struct
 
 // gitem_t->weapmodel for weapons indicates model index
 #define WEAP_BLASTER			1 
-#define WEAP_SHOTGUN			2 
+#define WEAP_TEMPORALBOMBS		2 
 #define WEAP_SUPERSHOTGUN		3 
 #define WEAP_MACHINEGUN			4 
 #define WEAP_CHAINGUN			5 
@@ -712,6 +713,7 @@ void fire_shotgun (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int k
 void fire_blaster (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int speed, int effect, qboolean hyper);
 void fire_grenade (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int speed, float timer, float damage_radius);
 void fire_grenade2 (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int speed, float timer, float damage_radius, qboolean held);
+void fire_temporalbomb (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int speed, float timer, float damage_radius, qboolean held);
 void fire_rocket (edict_t *self, vec3_t start, vec3_t dir, int damage, int speed, float damage_radius, int radius_damage);
 void fire_rail (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int kick);
 void fire_bfg (edict_t *self, vec3_t start, vec3_t dir, int damage, int speed, float damage_radius);
@@ -941,6 +943,7 @@ struct gclient_s
 
 	edict_t		*chase_target;		// player we are chasing
 	qboolean	update_chase;		// need to update chase info?
+	edict_t		*tbomb;				// the current temporal bomb set out
 };
 
 
@@ -1091,5 +1094,7 @@ struct edict_s
 	// common data blocks
 	moveinfo_t		moveinfo;
 	monsterinfo_t	monsterinfo;
+	edict_t		*tbomb;
+	int g_timer;
 };
 

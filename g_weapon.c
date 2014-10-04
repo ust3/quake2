@@ -493,7 +493,6 @@ void fire_grenade (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int s
 	grenade->dmg = damage;
 	grenade->dmg_radius = damage_radius;
 	grenade->classname = "grenade";
-
 	gi.linkentity (grenade);
 }
 
@@ -541,6 +540,122 @@ void fire_grenade2 (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int 
 	}
 }
 
+void tbomb_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
+{
+	if (other == self->owner)
+		return;
+
+	if (surf && (surf->flags & SURF_SKY))
+	{
+		G_FreeEdict (self);
+		return;
+	}
+
+	if (self->owner->client)
+		PlayerNoise(self->owner, self->s.origin, PNOISE_IMPACT);
+
+}
+
+
+void TBomb_Think (edict_t *ent)
+{
+	vec3_t		origin;
+	int			mod;
+	edict_t		*ignore;
+	qboolean	cleanup = false;
+	edict_t	*target= NULL;
+	float radius = 1000;
+	if(ent == NULL)
+		return;
+
+	if(ent->owner)
+		gi.centerprintf(ent->owner, "TBomb_Think: %d", ent->health);
+	if(ent->health-- < 1)
+		cleanup = true;
+
+	if (ent->spawnflags & 2)
+		ignore = NULL;
+	else
+		ignore = ent->owner;
+	target = NULL;
+
+	while ((target = findradius(target, ent->s.origin, radius)) != NULL)
+	{
+		if(target == ent)
+			continue;
+		gi.cprintf(ent->owner, PRINT_HIGH, "TBomb_Search: Checking object %s\n", ent->classname);
+		if (target == ignore)
+			continue;
+		if (!target->takedamage)
+			continue;
+		gi.cprintf(ent->owner, PRINT_HIGH, "TBomb_Search: %s slowed\n", ent->classname);
+		if(!cleanup && !(target->flags & FL_SLOWDOWN)){
+				if(!target->client){
+					target->velocity[0] *= .1;
+					target->velocity[1] *= .1;
+					target->velocity[2] *= .1;
+				}
+				target->flags |= FL_SLOWDOWN;
+				gi.linkentity(target);
+			}
+	}
+	if(cleanup){
+		gi.centerprintf(ent, "Time Bomb Complete");
+		if(ent->owner && ent->owner->client)
+			ent->owner->client->tbomb = NULL;
+		G_FreeEdict (ent);
+	}else{
+		ent->nextthink = level.time + 5;
+		gi.linkentity(ent);
+	}
+}
+
+void fire_temporalbomb (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int speed, float timer, float damage_radius, qboolean held)
+{
+	edict_t	*grenade;
+	vec3_t	dir;
+	vec3_t	forward, right, up;
+
+	vectoangles (aimdir, dir);
+	AngleVectors (dir, forward, right, up);
+
+	grenade = G_Spawn();
+	VectorCopy (start, grenade->s.origin);
+	VectorCopy (dir, grenade->movedir);
+	vectoangles (dir, grenade->s.angles);
+	VectorScale (dir, speed, grenade->velocity);
+	grenade->movetype = MOVETYPE_TOSS;
+	grenade->clipmask = MASK_SHOT;
+	grenade->solid = SOLID_BBOX;
+	grenade->s.effects |= EF_GRENADE;
+	VectorClear (grenade->mins);
+	VectorClear (grenade->maxs);
+	grenade->s.modelindex = gi.modelindex ("models/objects/grenade2/tris.md2");
+	grenade->owner = self;
+	grenade->health = 10000;
+	grenade->touch = tbomb_touch;
+	grenade->nextthink = level.time + 5;
+	grenade->think = TBomb_Think;
+	grenade->dmg = damage;
+	grenade->dmg_radius = damage_radius;
+	grenade->classname = "tbomb";
+	gi.bprintf(PRINT_HIGH, "(A)Grenade Think: %d", grenade->health);
+	if (held)
+		grenade->spawnflags = 3;
+	else
+		grenade->spawnflags = 1;
+	grenade->s.sound = gi.soundindex("weapons/hgrenc1b.wav");
+	if(self->client)
+		self->client->tbomb = grenade;
+	if (timer <= 0.0){
+		gi.linkentity(grenade);
+		TBomb_Think (grenade);
+	}else
+	{
+		gi.sound (self, CHAN_WEAPON, gi.soundindex ("weapons/hgrent1a.wav"), 1, ATTN_NORM, 0);
+		gi.linkentity (grenade);
+	}
+}
 
 /*
 =================

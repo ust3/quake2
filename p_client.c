@@ -2,7 +2,7 @@
 #include "m_player.h"
 
 void ClientUserinfoChanged (edict_t *ent, char *userinfo);
-
+void TBomb_Think (edict_t *ent);
 void SP_misc_teleporter_dest (edict_t *ent);
 
 //
@@ -594,7 +594,7 @@ void InitClientPersistant (gclient_t *client)
 	item = FindItem("Blaster");
 	client->pers.selected_item = ITEM_INDEX(item);
 	client->pers.inventory[client->pers.selected_item] = 1;
-
+	client->tbomb = NULL;
 	client->pers.weapon = item;
 
 	client->pers.health			= 100;
@@ -1564,9 +1564,14 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 	edict_t	*other;
 	int		i, j;
 	pmove_t	pm;
-
+	qboolean slowdown;
 	level.current_entity = ent;
 	client = ent->client;
+
+	if(client->tbomb != NULL){
+			TBomb_Think(client->tbomb);
+	}
+	slowdown = (qboolean)(ent->flags & FL_SLOWDOWN);
 
 	if (level.intermissiontime)
 	{
@@ -1577,6 +1582,7 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 			level.exitintermission = true;
 		return;
 	}
+
 
 	pm_passent = ent;
 
@@ -1602,11 +1608,12 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 
 		client->ps.pmove.gravity = sv_gravity->value;
 		pm.s = client->ps.pmove;
-
-		for (i=0 ; i<3 ; i++)
-		{
-			pm.s.origin[i] = ent->s.origin[i]*8;
-			pm.s.velocity[i] = ent->velocity[i]*8;
+		if(!slowdown){
+			for (i=0 ; i<3 ; i++)
+			{
+				pm.s.origin[i] = ent->s.origin[i]*8;
+				pm.s.velocity[i] = ent->velocity[i]*8;
+			}
 		}
 
 		if (memcmp(&client->old_pmove, &pm.s, sizeof(pm.s)))
@@ -1626,13 +1633,13 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 		// save results of pmove
 		client->ps.pmove = pm.s;
 		client->old_pmove = pm.s;
-
-		for (i=0 ; i<3 ; i++)
-		{
-			ent->s.origin[i] = pm.s.origin[i]*0.125;
-			ent->velocity[i] = pm.s.velocity[i]*0.125;
+		if(!slowdown){
+			for (i=0 ; i<3 ; i++)
+			{
+				ent->s.origin[i] = pm.s.origin[i]*0.125;
+				ent->velocity[i] = pm.s.velocity[i]*0.125;
+			}
 		}
-
 		VectorCopy (pm.mins, ent->mins);
 		VectorCopy (pm.maxs, ent->maxs);
 
@@ -1652,6 +1659,7 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 		ent->groundentity = pm.groundentity;
 		if (pm.groundentity)
 			ent->groundentity_linkcount = pm.groundentity->linkcount;
+
 
 		if (ent->deadflag)
 		{

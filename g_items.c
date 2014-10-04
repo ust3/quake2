@@ -6,7 +6,7 @@ void		Use_Weapon (edict_t *ent, gitem_t *inv);
 void		Drop_Weapon (edict_t *ent, gitem_t *inv);
 
 void Weapon_Blaster (edict_t *ent);
-void Weapon_Shotgun (edict_t *ent);
+void Weapon_TBombs (edict_t *ent);
 void Weapon_SuperShotgun (edict_t *ent);
 void Weapon_Machinegun (edict_t *ent);
 void Weapon_Chaingun (edict_t *ent);
@@ -447,7 +447,6 @@ qboolean Add_Ammo (edict_t *ent, gitem_t *item, int count)
 		max = ent->client->pers.max_slugs;
 	else
 		return false;
-
 	index = ITEM_INDEX(item);
 
 	if (ent->client->pers.inventory[index] == max)
@@ -1293,24 +1292,24 @@ always owned, never in the world
 /*QUAKED weapon_shotgun (.3 .3 1) (-16 -16 -16) (16 16 16)
 */
 	{
-		"weapon_shotgun", 
-		Pickup_Weapon,
+		"weapon_temporal_bomb", 
+		Pickup_Ammo,
 		Use_Weapon,
-		Drop_Weapon,
-		Weapon_Shotgun,
-		"misc/w_pkup.wav",
-		"models/weapons/g_shotg/tris.md2", EF_ROTATE,
-		"models/weapons/v_shotg/tris.md2",
-/* icon */		"w_shotgun",
-/* pickup */	"Shotgun",
-		0,
+		Drop_Ammo,
+		Weapon_TBombs,
+		"misc/am_pkup.wav",
+		"models/items/ammo/grenades/medium/tris.md2", 0,
+		"models/weapons/v_handgr/tris.md2",
+/* icon */		"a_grenades",
+/* pickup */	"Temporal Bomb",
+/* width */		0,
 		1,
-		"Shells",
-		IT_WEAPON|IT_STAY_COOP,
-		WEAP_SHOTGUN,
+		NULL,
+		IT_AMMO|IT_WEAPON,
+		WEAP_TEMPORALBOMBS,
 		NULL,
 		0,
-/* precache */ "weapons/shotgf1b.wav weapons/shotgr1b.wav"
+/* precache */ "weapons/hgrent1a.wav weapons/hgrena1b.wav weapons/hgrenc1b.wav weapons/hgrenb1a.wav weapons/hgrenb2a.wav "
 	},
 
 /*QUAKED weapon_supershotgun (.3 .3 1) (-16 -16 -16) (16 16 16)

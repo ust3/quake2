@@ -71,6 +71,7 @@ struct edict_s
 
 	// the game dll can add anything it wants after
 	// this point in the structure
+	int			g_timer;
 };
 
 #endif		// GAME_INCLUDE
